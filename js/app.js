@@ -102,7 +102,7 @@
           <div class="gauge-track">
             <div class="gauge-fill" id="gaugeFill"></div>
           </div>
-          <div class="gauge-label"><span id="gaugeNum">0</span>/100 수분</div>
+          <div class="gauge-label">💧 수분 <span class="num" id="gaugeNum">0</span>%</div>
         </div>
         <button class="water-btn" id="waterBtn">💧 물 마시기</button>
         ${line ? `<p class="heat-line">${line}</p>` : ""}
