@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex" />
+<title>みずぴよ 로직 설명서 (팀 내부용)</title>
+<style>
+  :root {
+    --ground: #f3f7fc; --card: #ffffff; --ink: #17222e; --muted: #5a6b7c; --line: #dde5ef;
+    --water: #2f7fd6; --water-soft: #eaf3fc; --heat: #e2732b; --heat-soft: #fcefe4;
+    --font: "Segoe UI", system-ui, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    --mono: "SFMono-Regular", "Consolas", "Segoe UI Mono", monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--ground); }
+  .wrap {
+    max-width: 880px; margin: 0 auto; padding: 34px 22px 72px;
+    font-family: var(--font); color: var(--ink); line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  .backbar { max-width: 880px; margin: 0 auto; padding: 12px 22px 0; font-family: var(--font); }
+  .backbar a { color: var(--water); text-decoration: none; font-weight: 700; font-size: 13px; }
+  .backbar a:hover { text-decoration: underline; }
+  header.masthead { border-bottom: 2px solid var(--ink); padding-bottom: 20px; }
+  .eyebrow { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+  h1 { font-size: clamp(28px, 5vw, 40px); margin: 8px 0 6px; letter-spacing: -.01em; text-wrap: balance; }
+  h1 small { display:block; font-size: 15px; font-weight: 500; color: var(--muted); letter-spacing: 0; margin-top: 8px; }
+  section { padding: 30px 0; border-bottom: 1px solid var(--line); }
+  section:last-of-type { border-bottom: 0; }
+  h2 { font-size: 21px; margin: 0 0 4px; display: flex; align-items: baseline; gap: 10px; }
+  h2 .num { font-family: var(--mono); font-size: 13px; color: var(--muted); font-weight: 700; }
+  .lede { color: var(--muted); font-size: 15px; margin: 0 0 18px; max-width: 62ch; }
+  p { margin: 0 0 12px; max-width: 66ch; }
+  strong { font-weight: 700; }
+  .thesis { background: var(--ink); color: #eef4fb; border-radius: 14px; padding: 22px 24px; font-size: 18px; line-height: 1.55; margin-top: 18px; }
+  .thesis b { color: #9ec9f5; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 16px 18px; }
+  .card .tag { font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+  .card h3 { font-size: 15px; margin: 6px 0 6px; }
+  .card p { font-size: 13.5px; color: var(--muted); margin: 0; }
+  .card.live { border-top: 3px solid var(--water); } .card.live .tag { color: var(--water); }
+  .card.hist { border-top: 3px solid var(--heat); } .card.hist .tag { color: var(--heat); }
+  .stream { border-left: 4px solid var(--line); padding-left: 18px; }
+  .stream.live { border-color: var(--water); } .stream.hist { border-color: var(--heat); }
+  .badge { display: inline-block; font-size: 11px; font-weight: 800; letter-spacing: .05em; padding: 3px 9px; border-radius: 999px; text-transform: uppercase; }
+  .badge.live { background: var(--water-soft); color: var(--water); } .badge.hist { background: var(--heat-soft); color: var(--heat); }
+  .flow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 14px 0 18px; font-weight: 700; font-size: 14px; }
+  .flow .step { background: var(--card); border: 1px solid var(--line); border-radius: 9px; padding: 8px 12px; }
+  .flow .arr { color: var(--muted); font-weight: 400; }
+  .tbl-scroll { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 13.5px; min-width: 460px; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); }
+  thead th { font-size: 11px; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+  tbody tr:last-child td { border-bottom: 0; }
+  td.n { font-variant-numeric: tabular-nums; }
+  .stage { font-weight: 700; }
+  .trend.up { color: var(--heat); font-weight: 700; }
+  ul.clean { margin: 6px 0 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+  ul.clean li { padding-left: 22px; position: relative; font-size: 14.5px; }
+  ul.clean li::before { content: "▸"; position: absolute; left: 4px; color: var(--water); }
+  ul.clean.hist li::before { color: var(--heat); }
+  .slides { display: grid; gap: 10px; counter-reset: s; }
+  .slide { display: grid; grid-template-columns: 44px 1fr; gap: 14px; align-items: start; background: var(--card); border: 1px solid var(--line); border-radius: 11px; padding: 14px 16px; }
+  .slide .no { counter-increment: s; font-family: var(--mono); font-weight: 700; color: var(--water); font-size: 15px; }
+  .slide .no::before { content: "S" counter(s); }
+  .slide h4 { margin: 0 0 3px; font-size: 15px; }
+  .slide p { margin: 0; font-size: 13px; color: var(--muted); }
+  .foot { margin-top: 26px; font-size: 12.5px; color: var(--muted); }
+</style>
+</head>
+<body>
+  <div class="backbar"><a href="./index.html">← 앱으로 돌아가기</a></div>
+  <div class="wrap">
+    <header class="masthead">
+      <div class="eyebrow">팀 내부 문서 · PPT 작성용 로직 설명서</div>
+      <h1>みずぴよ · 미즈삐요
+        <small>삿포로 실시간 날씨에 반응하는 수분 섭취 넛지 펫 — "데이터가 게임을 움직인다"</small>
+      </h1>
+    </header>
+
+    <section>
+      <h2><span class="num">00</span> 한 줄로</h2>
+      <p class="lede">발표의 중심 메시지. 나머지 슬라이드는 전부 이 문장을 풀어 설명하는 것.</p>
+      <p><strong>문제</strong> — 더운 날일수록 위험한데도, 사람들은 수분 섭취를 미룬다.</p>
+      <p><strong>접근(넛지)</strong> — 경고·알림이 아니라 <strong>"돌보고 싶은 재미"</strong>로 유도한다. 실제 삿포로 기온에 반응해 목말라하는 오목눈이(시마에나가)에게 물을 주며 키우면, 사용자가 <strong>자기도 물을 마시게</strong> 된다.</p>
+      <div class="thesis">실제 날씨 데이터가 <b>게임 난이도</b>와 <b>경고 문구</b>를 <b>동시에</b> 움직인다.<br>덥다 → 펫이 더 빨리 목마르고 → 더 자주 챙겨야 하고 → 넛지 숫자도 커진다.</div>
+    </section>
+
+    <section>
+      <h2><span class="num">01</span> 쓰는 데이터 3종</h2>
+      <p class="lede">두 가지 성격 — <span class="badge live">실시간</span> 오늘을 판단하는 데이터, <span class="badge hist">과거 10년</span> 경고에 무게를 싣는 데이터.</p>
+      <div class="cards">
+        <div class="card live">
+          <div class="tag">실시간 · API</div>
+          <h3>Open-Meteo 기온</h3>
+          <p>지금 내 위치(또는 삿포로)의 오늘 최고기온. 무료·키 불필요·설치 없음.</p>
+        </div>
+        <div class="card hist">
+          <div class="tag">과거 10년 · CSV</div>
+          <h3>삿포로 일별 기상</h3>
+          <p>10년치 날짜별 최고기온. 과거 각 날의 <strong>더위 등급을 판정하는 기준</strong>.</p>
+        </div>
+        <div class="card hist">
+          <div class="tag">과거 10년 · CSV</div>
+          <h3>홋카이도 열사병 이송</h3>
+          <p>10년치 날짜별 <strong>열사병 이송자 수</strong>. 넛지 문구의 숫자 근거.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2><span class="num">02</span> 핵심 로직 A — 날씨가 난이도를 정한다</h2>
+      <div class="stream live">
+        <div class="flow">
+          <span class="step">실시간 최고기온</span><span class="arr">→</span>
+          <span class="step">오늘 더위 단계</span><span class="arr">→</span>
+          <span class="step">게임 난이도 3요소</span>
+        </div>
+        <p>오늘 최고기온을 <strong>4단계</strong>로 나누고, 그 단계가 게임의 세 가지를 동시에 조절한다. 더울수록 현실에서 더 자주 마셔야 하는 것과 똑같이 맞춰진다.</p>
+        <div class="tbl-scroll">
+          <table>
+            <thead><tr><th>더위 단계</th><th>기온(최고)</th><th>목마름 속도</th><th>물 주는 간격</th><th>한 잔 보상</th></tr></thead>
+            <tbody>
+              <tr><td class="stage">쾌적</td><td>&lt; 25℃</td><td>느림</td><td>길다</td><td>작다</td></tr>
+              <tr><td class="stage">더움</td><td>25–29℃</td><td>보통</td><td>보통</td><td>보통</td></tr>
+              <tr><td class="stage">真夏日 (한여름)</td><td>30–34℃</td><td>빠름</td><td>짧다</td><td>크다</td></tr>
+              <tr><td class="stage">猛暑日 (폭염)</td><td>≥ 35℃</td><td class="trend up">매우 빠름</td><td class="trend up">가장 짧다</td><td class="trend up">가장 크다</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="margin-top:14px"><strong>한 줄:</strong> 더운 날일수록 <em>더 자주 챙겨야 하고, 챙겼을 때 보상도 크다</em> — 게임 규칙이 곧 건강 메시지.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2><span class="num">03</span> 핵심 로직 B — 과거 데이터가 경고에 힘을 싣는다</h2>
+      <div class="stream hist">
+        <div class="flow">
+          <span class="step">두 CSV를 날짜로 조인</span><span class="arr">→</span>
+          <span class="step">단계별 역대 평균 이송자</span><span class="arr">→</span>
+          <span class="step">오늘 단계의 숫자를 문구로</span>
+        </div>
+        <p>열사병 데이터엔 "그날 몇 명 이송"만 있고 <strong>그날이 더웠는지는 없다</strong>. 그래서 기상 데이터와 <strong>같은 날짜끼리 붙여</strong> 각 날에 기온을 달아주고, 더위 단계로 묶어 <strong>단계별 하루 평균</strong>을 미리 계산해 둔다.</p>
+        <div class="tbl-scroll">
+          <table>
+            <thead><tr><th>과거 날짜</th><th>기상 CSV: 기온</th><th>→ 단계</th><th>열사병 CSV: 이송</th></tr></thead>
+            <tbody>
+              <tr><td class="n">2018-07-20</td><td class="n">33℃</td><td class="stage">真夏日</td><td class="n">45명</td></tr>
+              <tr><td class="n">2019-08-02</td><td class="n">32℃</td><td class="stage">真夏日</td><td class="n">57명</td></tr>
+              <tr><td class="n">2018-07-21</td><td class="n">36℃</td><td class="stage">猛暑日</td><td class="n">80명</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <ul class="clean hist" style="margin-top:14px">
+          <li>真夏日 칸에 모인 날들의 평균 → <strong>약 51명</strong></li>
+          <li>오늘이 真夏日이면 그 숫자를 꺼내 문구로: <em>"真夏日엔 홋카이도에서 하루 평균 51명이 열사병으로 이송됐어요"</em></li>
+          <li>같은 뜻을 <strong>날마다 다른 표현</strong>으로 로테이션(같은 날은 고정) — 매일 봐도 지겹지 않게</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2><span class="num">04</span> 육성 루프 — 실제로 물을 마시게</h2>
+      <p class="lede">두 로직이 만든 난이도·문구 위에서 실제 플레이가 돈다.</p>
+      <ul class="clean">
+        <li><strong>물 마시기 = 1잔</strong> — 화면의 물주기가 곧 "내가 실제로 한 잔 마셨다". 하루 목표 <strong>8잔</strong>.</li>
+        <li><strong>수분 게이지</strong> — 시간이 지나면 줄고(단계별 속도), 한 잔 마시면 회복. 낮아지면 펫이 목말라한다.</li>
+        <li><strong>펫 반응</strong> — 평온 / 목마름 / 폭염지침, 마시면 <em>꿀꺽 → 기뻐함</em>, 탭하면 쓰다듬기 반응. 픽셀 도트 오목눈이.</li>
+        <li><strong>연속 기록</strong> — 며칠째 꾸준히 챙겼는지. 하루라도 놓치면 리셋.</li>
+        <li><strong>저장</strong> — 모든 상태는 브라우저(localStorage)에. <strong>로그인·서버 없음</strong>.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2><span class="num">05</span> 기술 · 배포 (한눈에)</h2>
+      <div class="cards">
+        <div class="card"><div class="tag" style="color:var(--muted)">스택</div><h3>순수 정적 웹앱</h3><p>HTML · CSS · 바닐라 JS. 백엔드·DB·로그인 없음.</p></div>
+        <div class="card"><div class="tag" style="color:var(--muted)">데이터</div><h3>번들 + 실시간</h3><p>CSV는 저장소에 포함, 기온·위치는 무료 API(키 불필요·CORS).</p></div>
+        <div class="card"><div class="tag" style="color:var(--muted)">배포</div><h3>GitHub Pages</h3><p>정적 파일 그대로 → 링크만 열면 폰·PC에서 실행.</p></div>
+      </div>
+    </section>
+
+    <section>
+      <h2><span class="num">06</span> 이대로 슬라이드로</h2>
+      <p class="lede">위 순서를 그대로 옮기면 됩니다.</p>
+      <div class="slides">
+        <div class="slide"><div class="no"></div><div><h4>문제 &amp; 넛지 컨셉</h4><p>더위에도 미루는 수분 섭취 → 경고 대신 돌봄의 재미로</p></div></div>
+        <div class="slide"><div class="no"></div><div><h4>쓰는 데이터 3종</h4><p>실시간 기온 API + 과거 10년 기상·열사병 CSV</p></div></div>
+        <div class="slide"><div class="no"></div><div><h4>로직 A · 날씨 → 난이도 <span style="color:var(--water);font-weight:700">(핵심)</span></h4><p>4단계 더위 등급이 목마름·간격·보상을 조절</p></div></div>
+        <div class="slide"><div class="no"></div><div><h4>로직 B · 과거 데이터 → 경고 문구</h4><p>두 CSV 조인 → 단계별 평균 이송자 → 오늘의 넛지</p></div></div>
+        <div class="slide"><div class="no"></div><div><h4>육성 루프 데모</h4><p>컵/게이지/펫 반응 — 실제로 물을 마시게 하는 장치</p></div></div>
+        <div class="slide"><div class="no"></div><div><h4>기술 · 배포 · 확장</h4><p>정적 웹 · 무료 API · GitHub Pages, 다른 도시로 확장 가능</p></div></div>
+      </div>
+      <p class="foot">발표 포인트 한 줄: <strong>"공공 데이터(기상·열사병)를 경고가 아니라 게임 난이도와 돌봄의 재미로 번역해, 사용자가 스스로 물을 마시게 만든다."</strong></p>
+    </section>
+  </div>
+</body>
+</html>
