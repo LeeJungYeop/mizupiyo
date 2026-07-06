@@ -109,18 +109,29 @@
       </section>
 
       <section class="stats">
-        <div class="stat"><span class="k">🥤 오늘</span><span class="v">${st.cupsToday}/${st.goal}잔</span></div>
-        <div class="stat"><span class="k">🔥 연속</span><span class="v">${st.streak}일째</span></div>
-        <div class="stat"><span class="k">💧 누적</span><span class="v">${st.waterCount}잔</span></div>
+        <div class="stat"><span class="k">🥤 오늘</span><span class="v" id="statCups">${st.cupsToday}/${st.goal}잔</span></div>
+        <div class="stat"><span class="k">🔥 연속</span><span class="v" id="statStreak">${st.streak}일째</span></div>
+        <div class="stat"><span class="k">💧 누적</span><span class="v" id="statTotal">${st.waterCount}잔</span></div>
       </section>
     `;
     App.els.petWrap = $("#petWrap");
     App.els.gaugeFill = $("#gaugeFill");
     App.els.gaugeNum = $("#gaugeNum");
     App.els.waterBtn = $("#waterBtn");
+    App.els.statCups = $("#statCups");
+    App.els.statStreak = $("#statStreak");
+    App.els.statTotal = $("#statTotal");
     App.els.waterBtn.addEventListener("click", onWater);
     App.els.petWrap.addEventListener("click", onPetTap);
     updateHomeDynamic();
+  }
+
+  function updateStats() {
+    if (App.tab !== "home" || !App.els.statCups) return;
+    const st = Game.snapshotState();
+    App.els.statCups.textContent = `${st.cupsToday}/${st.goal}잔`;
+    App.els.statStreak.textContent = `${st.streak}일째`;
+    App.els.statTotal.textContent = `${st.waterCount}잔`;
   }
 
   // Petting: tap the bird for a happy reaction (separate from watering).
@@ -144,6 +155,7 @@
     App.els.gaugeFill.style.width = clamp(g, 0, 100) + "%";
     App.els.gaugeFill.className = "gauge-fill " + gaugeColor(g);
     App.els.gaugeNum.textContent = Math.round(g);
+    updateStats();
 
     // Pet emotion. Petting -> happy; watering -> gulp (drink) then cheer.
     let state = Game.petState(snap);
