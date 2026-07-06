@@ -58,6 +58,25 @@
       clear(x + 1, y); clear(x - 1, y); clear(x, y + 1); clear(x, y - 1);
     }
 
+    // Edge cleanup for a crisper silhouette: drop isolated specks and shave the
+    // pale-blue anti-alias halo. Saturated blues (e.g. sweat drops) are kept.
+    const A = (x, y) => (x >= 0 && x < W && y >= 0 && y < H ? im.data[(y * W + x) * 4 + 3] : 0);
+    const drop = [];
+    for (let y = 0; y < H; y++) {
+      for (let x = 0; x < W; x++) {
+        const o = y * W + x;
+        if (!im.data[o * 4 + 3]) continue;
+        let n = 0;
+        if (A(x - 1, y)) n++; if (A(x + 1, y)) n++; if (A(x, y - 1)) n++; if (A(x, y + 1)) n++;
+        if (n <= 1) { drop.push(o); continue; } // isolated speck
+        if (n < 4) { // edge pixel — remove only a light bluish halo
+          const r = im.data[o * 4], g = im.data[o * 4 + 1], b = im.data[o * 4 + 2];
+          if (b > r + 10 && b > g + 6 && Math.min(r, g) > 180) drop.push(o);
+        }
+      }
+    }
+    drop.forEach((o) => (im.data[o * 4 + 3] = 0));
+
     ctx.putImageData(im, 0, 0);
     return cv.toDataURL("image/png");
   }
