@@ -72,6 +72,13 @@ body.tone-blaze { background: linear-gradient(180deg, #ff9f8a 0%, #ffc0ac 50%, #
 .badge.stage.tone-hot   { background: #f0742c; color: #fff; }
 .badge.stage.tone-blaze { background: #e23b2e; color: #fff; }
 
+/* Mobile: center the header (date + badges) under the brand */
+@media (max-width: 520px) {
+  .topbar { flex-direction: column; align-items: center; justify-content: center; gap: 7px; text-align: center; }
+  .date { width: 100%; text-align: center; }
+  .badges { justify-content: center; flex-wrap: wrap; }
+}
+
 /* --- Pet stage ------------------------------------------------------------ */
 .pet-stage {
   background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
